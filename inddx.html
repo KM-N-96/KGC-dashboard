@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KGC 마케팅 퍼포먼스 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #f1f5f9; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .kgc-red { color: #c62828; }
+        .kgc-bg-red { background-color: #c62828; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+    <div class="flex flex-col lg:flex-row h-screen overflow-hidden">
+        <!-- Sidebar (Desktop) -->
+        <aside class="hidden lg:flex w-64 flex-col bg-slate-900 text-white p-6">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center font-bold">K</div>
+                <h1 class="text-xl font-bold tracking-tight">KGC Insight</h1>
+            </div>
+            <nav class="space-y-4 flex-1">
+                <a href="#" class="flex items-center gap-3 p-3 bg-red-600 rounded-xl transition-all">
+                    <span>📊</span> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-xl transition-all">
+                    <span>🛒</span> Sales Analysis
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-xl transition-all">
+                    <span>👥</span> Consumer VOC
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-xl transition-all">
+                    <span>🚀</span> Strategy
+                </a>
+            </nav>
+            <div class="mt-auto p-4 bg-slate-800 rounded-2xl text-xs opacity-60 text-center">
+                Last updated: 2026.03.27
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+            <!-- Header -->
+            <header class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">에브리타임 밸런스 리뉴얼 성과</h2>
+                    <p class="text-slate-500 text-sm">2026년 3월 4주차 위클리 퍼포먼스 리포트</p>
+                </div>
+                <div class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm">
+                    <span class="px-3 py-1 bg-slate-100 rounded-lg text-sm font-semibold">Week 4, March</span>
+                    <button class="bg-red-600 text-white px-4 py-1 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors">Export PDF</button>
+                </div>
+            </header>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-red-600">
+                    <div class="text-slate-500 text-xs font-bold uppercase mb-1">Total Sales Growth</div>
+                    <div class="text-3xl font-bold text-slate-900 tracking-tight">+13.0%</div>
+                    <div class="text-xs trend-up mt-2 font-semibold flex items-center gap-1">
+                        ▲ 2.5% vs Last Week
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-blue-500">
+                    <div class="text-slate-500 text-xs font-bold uppercase mb-1">CVS Channel (Metropolitan)</div>
+                    <div class="text-3xl font-bold text-slate-900 tracking-tight">+15%</div>
+                    <div class="text-xs trend-up mt-2 font-semibold">Strong Momentum</div>
+                </div>
+                <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-emerald-500">
+                    <div class="text-slate-500 text-xs font-bold uppercase mb-1">2030 Target Share</div>
+                    <div class="text-3xl font-bold text-slate-900 tracking-tight">45%</div>
+                    <div class="text-xs text-blue-500 mt-2 font-semibold">Core Growth Driver</div>
+                </div>
+                <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-amber-500">
+                    <div class="text-slate-500 text-xs font-bold uppercase mb-1">Activity Keyword Mention</div>
+                    <div class="text-3xl font-bold text-slate-900 tracking-tight">+30%</div>
+                    <div class="text-xs text-amber-600 mt-2 font-semibold">Lifestyle Expansion</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Sales by Region -->
+                <div class="lg:col-span-2 glass-card p-6 rounded-3xl shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-bold text-lg">채널별 지역 판매 동향</h3>
+                        <div class="flex gap-2">
+                            <span class="flex items-center gap-1 text-xs text-slate-500"><div class="w-2 h-2 rounded-full bg-red-600"></div>수도권</span>
+                            <span class="flex items-center gap-1 text-xs text-slate-500"><div class="w-2 h-2 rounded-full bg-slate-300"></div>지방권</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Demographics -->
+                <div class="glass-card p-6 rounded-3xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-6">구매 연령층 분포</h3>
+                    <div class="chart-container">
+                        <canvas id="ageDonutChart"></canvas>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500">2030 사회초년생</span>
+                            <span class="font-bold">45%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-red-600 h-full w-[45%]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- VOC Analysis -->
+                <div class="glass-card p-6 rounded-3xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-4">Consumer Insights (VOC)</h3>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-emerald-700 font-bold text-sm">Positive Sentiment (Design/Taste)</span>
+                                <span class="text-xs text-emerald-600">82% Positive</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 opacity-80 italic">"선물하기 너무 예뻐요", "쓴맛이 덜해서 운동 중에 먹기 편함"</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-2xl border border-red-100">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-red-700 font-bold text-sm">Pain Points (Price/UX)</span>
+                                <span class="text-xs text-red-600">Action Required</span>
+                            </div>
+                            <p class="text-xs text-red-800 opacity-80 italic">"가격 인상 체감돼요", "박스 개봉 시 지기 구조 뻑뻑함 개선 필요"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keyword Trends -->
+                <div class="glass-card p-6 rounded-3xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-4">Lifestyle Keyword Trend</h3>
+                    <div class="chart-container">
+                        <canvas id="keywordBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 glass-card p-8 rounded-3xl shadow-sm bg-gradient-to-r from-red-600 to-red-800 text-white">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Team Leader's Strategy 제언</h3>
+                        <ul class="space-y-2 text-sm opacity-90">
+                            <li class="flex items-center gap-2">✔ '오운완' 챌린지 및 아웃도어 스포츠 샘플링 집중</li>
+                            <li class="flex items-center gap-2">✔ 패키징 UX 품질 보완을 위한 생산부서 협의 착수</li>
+                            <li class="flex items-center gap-2">✔ 지방권 대형마트 활성화를 위한 프로모션 패키지 구성</li>
+                        </ul>
+                    </div>
+                    <button class="bg-white text-red-700 px-6 py-3 rounded-2xl font-bold hover:bg-slate-100 transition-transform hover:scale-105">View Full Action Plan</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Common Chart Config
+            Chart.defaults.font.family = "'Inter', 'Noto Sans KR'";
+            Chart.defaults.color = '#64748b';
+
+            // 1. Regional Sales Bar Chart
+            new Chart(document.getElementById('salesChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['수도권 (CVS/몰)', '지방권 (대형마트/로드샵)'],
+                    datasets: [
+                        {
+                            label: '전주 대비 증감률 (%)',
+                            data: [15, -2],
+                            backgroundColor: ['#c62828', '#cbd5e1'],
+                            borderRadius: 12,
+                            barThickness: 60
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: value => value + '%' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 2. Age Demographics Donut
+            new Chart(document.getElementById('ageDonutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['2030 사회초년생', '4050 부모세대', '60대 이상/기타'],
+                    datasets: [{
+                        data: [45, 35, 20],
+                        backgroundColor: ['#c62828', '#475569', '#cbd5e1'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } }
+                    }
+                }
+            });
+
+            // 3. Keyword Horizontal Bar
+            new Chart(document.getElementById('keywordBarChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['등산', '테니스', '헬스/오운완', '직장인선물'],
+                    datasets: [{
+                        data: [35, 30, 25, 10],
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { display: false } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>
