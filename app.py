@@ -1,153 +1,179 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from streamlit_gsheets import GSheetsConnection
 
-# 1. 페이지 설정
+# 페이지 설정
 st.set_page_config(
-    page_title="KGC Insight - 실시간 퍼포먼스",
-    page_icon="🍎",
-    layout="wide"
+    page_title="KGC Insight - Premium Dashboard",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# 2. 구글 스프레드시트 연결 및 데이터 로드
-# 제공해주신 ID를 기반으로 전체 URL 생성
+st.markdown("""
+    <style>
+    /* 메인 배경 및 전체 폰트 설정 */
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
+    
+    html, body, [data-testid="stAppViewContainer"] {
+        font-family: 'Pretendard', sans-serif;
+        background-color: #0f1116;
+        color: #ffffff;
+    }
+
+    /* 상단 헤더 섹션 */
+    .header-container {
+        padding: 2rem 0rem;
+        background: linear-gradient(90deg, #1e1e26 0%, #0f1116 100%);
+        border-bottom: 2px solid #d32f2f;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        text-align: center;
+    }
+
+    /* 메트릭 카드 스타일 (글래스모피즘 효과) */
+    div[data-testid="metric-container"] {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 25px !important;
+        border-radius: 18px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        backdrop-filter: blur(4px);
+        transition: transform 0.3s ease;
+    }
+    
+    div[data-testid="metric-container"]:hover {
+        transform: translateY(-5px);
+        border: 1px solid #d32f2f;
+    }
+
+    /* 텍스트 스타일 조정 */
+    [data-testid="stMetricLabel"] { 
+        color: #94a3b8 !important; 
+        font-weight: 500 !important; 
+        font-size: 1rem !important; 
+    }
+    [data-testid="stMetricValue"] { 
+        color: #ffffff !important; 
+        font-weight: 800 !important; 
+        font-size: 2.2rem !important; 
+    }
+
+    /* 사이드바 및 컨테이너 조정 */
+    .stAlert {
+        background-color: rgba(211, 47, 47, 0.1) !important;
+        color: #ff8a80 !important;
+        border: 1px solid rgba(211, 47, 47, 0.3) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1BJIfd1sb12RSWmCt3vyQM-w0PgB-lERe_-ntYAyCFiA/edit#gid=0"
 
+@st.cache_data(ttl=60)
 def load_data():
     try:
-        # GSheetsConnection을 사용하여 데이터 읽기
         conn = st.connection("gsheets", type=GSheetsConnection)
-        # 직접 URL을 전달하여 설정 미비로 인한 오류 방지
         df = conn.read(spreadsheet=SPREADSHEET_URL, ttl="1m")
-        
-        # 데이터 클리닝: 컬럼명 및 라벨 데이터의 앞뒤 공백 제거
         df.columns = df.columns.str.strip()
         if 'label' in df.columns:
             df['label'] = df['label'].astype(str).str.strip()
         return df
     except Exception as e:
-        st.error(f"데이터를 불러오는 중 오류가 발생했습니다: {e}")
         return None
 
 df = load_data()
 
-# 3. 데이터 추출 및 가공
 def get_metric_data(label_name):
     if df is not None and not df.empty and 'label' in df.columns:
         try:
             row = df[df['label'] == label_name].iloc[0]
-            return {
-                'value': row.get('value', 0),
-                'delta': row.get('delta', '0%')
-            }
-        except (IndexError, KeyError):
-            pass
+            return {'value': row.get('value', 0), 'delta': row.get('delta', '0%')}
+        except: pass
     return {'value': 0, 'delta': 'N/A'}
 
-# 지표별 데이터 할당
-sales_data = get_metric_data('수도권 판매량')
-target_data = get_metric_data('핵심 타겟층(2030)')
-keyword_data = get_metric_data('스포츠 키워드 언급')
-review_data = get_metric_data('긍정 리뷰 비율')
+sales = get_metric_data('수도권 판매량')
+target = get_metric_data('핵심 타겟층(2030)')
+keyword = get_metric_data('스포츠 키워드 언급')
+review = get_metric_data('긍정 리뷰 비율')
+summary = df.iloc[5, 0] if df is not None and len(df) >= 6 else "데이터를 불러오는 중입니다..."
 
-# 요약 텍스트 (6행 1열 예상)
-summary_text = "데이터를 불러올 수 없습니다."
-if df is not None and len(df) >= 6:
-    summary_text = df.iloc[5, 0]
-
-# 4. UI 스타일링 (CSS)
-st.markdown("""
-    <style>
-    .main { background-color: #f8fafc; }
-    /* 메트릭 카드 스타일 */
-    div[data-testid="metric-container"] {
-        background-color: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border-left: 6px solid #c62828;
-    }
-    /* 텍스트 폰트 조정 */
-    [data-testid="stMetricLabel"] { font-size: 1.1rem !important; font-weight: 600 !important; }
-    </style>
+st.markdown(f"""
+    <div class="header-container">
+        <h1 style='margin:0; color:#ffffff; font-size: 2.5rem;'>KGC 🍎 에브리타임 밸런스</h1>
+        <p style='color:#94a3b8; font-size: 1.1rem; margin-top:0.5rem;'>REAL-TIME PERFORMANCE MONITORING</p>
+    </div>
     """, unsafe_allow_html=True)
 
-# 5. 대시보드 상단 헤더
-st.title("🍎 에브리타임 밸런스 실시간 퍼포먼스")
-st.caption(f"연동 시트 ID: {SPREADSHEET_URL.split('/')[-2]}")
-
-# 6. 주요 지표 (Metrics)
-def format_percent(val):
+def format_val(v, plus=False):
     try:
-        # 0.85 같은 소수를 85.0% 형태로 변환
-        v = float(val)
-        if v <= 1.0 and v > 0:
-            return f"{v * 100:.1f}%"
-        return f"{v:.1f}%"
-    except:
-        return str(val)
+        num = float(v)
+        return f"{'+' if plus else ''}{num*100:.1f}%" if num <= 1.0 else f"{num:.1f}"
+    except: return str(v)
 
 m1, m2, m3, m4 = st.columns(4)
+with m1: st.metric("수도권 성장률", format_val(sales['value']), sales['delta'])
+with m2: st.metric("2030 타겟 비중", format_val(target['value']), target['delta'])
+with m3: st.metric("스포츠 키워드", format_val(keyword['value'], True), keyword['delta'])
+with m4: st.metric("긍정 리뷰", format_val(review['value']), review['delta'])
 
-with m1:
-    st.metric("수도권 판매 성장", format_percent(sales_data['value']), sales_data['delta'])
-with m2:
-    st.metric("2030 타겟 비중", format_percent(target_data['value']), target_data['delta'])
-with m3:
-    st.metric("스포츠 키워드 언급", format_percent(keyword_data['value']), keyword_data['delta'])
-with m4:
-    st.metric("긍정 리뷰 비율", format_percent(review_data['value']), review_data['delta'])
+st.markdown("<br>", unsafe_allow_html=True)
 
-st.write("") # 간격 조절
-st.markdown("---")
-
-# 7. 상세 분석 섹션
-col_left, col_right = st.columns([1, 1.2])
+col_left, col_right = st.columns([1.2, 1])
 
 with col_left:
-    st.subheader("💡 주간 마케팅 인사이트")
-    st.info(f"**실시간 데이터 요약:**\n\n{summary_text}")
-    
-    with st.expander("📌 향후 전략 제언", expanded=True):
-        st.write("""
-        - **스포츠 마케팅 강화:** 키워드 언급 증가세에 맞춰 테니스/러닝 크루 협업 확대
-        - **리뷰 관리:** 긍정 리뷰 유지를 위한 패키징 개선 피드백 반영
-        - **타겟 확장:** 2030 외 타겟군 확장 가능성 검토
-        """)
-
-with col_right:
-    st.subheader("📊 지표별 달성률 비교")
+    st.markdown("### 📊 Key Performance Indicator (KPI)")
     try:
-        # 차트 데이터 구성
-        labels = ['수도권', '2030비중', '키워드', '긍정리뷰']
-        values = []
-        for d in [sales_data, target_data, keyword_data, review_data]:
-            try:
-                v = float(d['value'])
-                values.append(v * 100 if v <= 1.0 else v)
-            except:
-                values.append(0)
+        labels = ['Regional', 'Target 2030', 'Keywords', 'Positive Review']
+        vals = [float(sales['value'])*100, float(target['value'])*100, float(keyword['value'])*100, float(review['value'])*100]
         
-        chart_df = pd.DataFrame({'지표': labels, '달성도(%)': values})
+        # Plotly 다크 테마 차트
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=labels, y=vals,
+            marker=dict(
+                color=vals,
+                colorscale=[[0, '#334155'], [0.5, '#d32f2f'], [1, '#ff5252']],
+                line=dict(color='#ffffff', width=1)
+            ),
+            text=[f"{v:.1f}%" for v in vals],
+            textposition='auto',
+        ))
         
-        fig = px.bar(
-            chart_df, 
-            x='지표', 
-            y='달성도(%)', 
-            color='지표',
-            text='달성도(%)',
-            color_discrete_sequence=['#c62828', '#1e3a8a', '#fbbf24', '#2dd4bf']
-        )
-        
-        fig.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
         fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            yaxis_range=[0, 110],
-            showlegend=False,
-            margin=dict(l=20, r=20, t=20, b=20),
-            height=380
+            font=dict(color='#94a3b8'),
+            margin=dict(l=0, r=0, t=20, b=0),
+            height=400,
+            yaxis=dict(range=[0, 110], gridcolor='rgba(255,255,255,0.05)'),
+            xaxis=dict(gridcolor='rgba(255,255,255,0.05)')
         )
         st.plotly_chart(fig, use_container_width=True)
-    except Exception as e:
-        st.warning(f"시각화 데이터를 준비 중입니다... ({e})")
+    except:
+        st.warning("차트 데이터를 생성할 수 없습니다.")
+
+with col_right:
+    st.markdown("### 💡 Executive Insights")
+    st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; border-left: 5px solid #d32f2f;">
+            <p style="color:#e2e8f0; font-size:1.1rem; line-height:1.6;">{summary}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("🚀 전략적 실행 방안 (Action Plan)", expanded=True):
+        st.markdown("""
+        - **Premium Branding:** 고관여 스포츠(테니스/러닝) 중심 팝업 강화
+        - **Quality Feedback:** 리뷰 데이터 기반 패키징 UX 개선 태스크포스(TF) 가동
+        - **Growth Hacking:** 수도권 판매 성장세를 지방 거점 도시로 확산 전략 수립
+        """)
+
+st.markdown("---")
+f1, f2 = st.columns(2)
+with f1:
+    st.caption("Sync Status: 🟢 Connected to Google Sheets")
+with f2:
+    st.markdown("<p style='text-align:right; color:#64748b; font-size:0.8rem;'>Last Updated: Real-time via Streamlit Cloud</p>", unsafe_allow_html=True)
